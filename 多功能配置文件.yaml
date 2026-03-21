@@ -539,7 +539,6 @@ rules:
   - DOMAIN-SUFFIX,gmpub.vilink.cc,首页入口
   - DOMAIN-SUFFIX,gmres.vilink.cc,首页入口
   - DOMAIN-SUFFIX,xuezhangvps.shop,首页入口
-  - DOMAIN-SUFFIX,e.beupisp.com,YouTube
   - RULE-SET,Gemini,OpenAi
   - RULE-SET,OpenAi,OpenAi
   - RULE-SET,Google,Google
