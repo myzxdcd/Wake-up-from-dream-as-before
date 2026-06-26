@@ -62,12 +62,12 @@ proxy-groups:
   - name: OpenAi
     type: select
     proxies:
-      - 首页入口
+      - 美国节点
       - 香港节点
       - 台湾节点
       - 新加坡节点
       - 日本节点
-      - 美国节点
+      - 首页入口
       - 韩国节点
       - 备用节点
       - DIRECT
@@ -104,12 +104,12 @@ proxy-groups:
   - name: Google
     type: select
     proxies:
+      - 美国节点
       - 首页入口
       - 香港节点
       - 台湾节点
       - 新加坡节点
       - 日本节点
-      - 美国节点
       - 韩国节点
       - 备用节点
       - DIRECT
