@@ -13,7 +13,17 @@
 # - include-all: true → 自动包含所有节点
 # - filter: 正则过滤节点名，配合 include-all 使用
 # - icon: 设置图标，在支持的客户端上美观展示
-
+proxy-providers:
+  # 订阅1：可填写机场订阅链接（建议命名规范统一）
+  Subscription-1:         # 订阅名称，可自定义
+    type: file
+    url: "填写你的机场订阅链接"       #""中填写订阅机场链接
+    interval: 86400
+    path: ./providers/Subscription-2.yaml
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
 proxy-groups:
   - name: 首页入口
     type: select
@@ -535,10 +545,23 @@ rule-providers:
 # 示例：
 # - RULE-SET,Google, Google
 # 表示请求匹配 Google 规则集的流量走 Google 策略组
-rules:  
+rules: 
+  - DOMAIN-SUFFIX,shiyuegame.com,全球直连
+  - DOMAIN-SUFFIX,oss-cn-beijing.aliyuncs.com,全球直连
+  - DOMAIN,oss-cn-beijing.aliyuncs.com,全球直连
+  - DOMAIN-SUFFIX,oss-cn-beijing.aliyuncs.com,全球直连
+  - DOMAIN-SUFFIX,aliyuncs.com,全球直连
+  - DOMAIN,newapi.rainymoe.net,首页入口
+  - DOMAIN-SUFFIX,newapi.rainymoe.net,首页入口
+  - DOMAIN-SUFFIX,rainymoe.net,首页入口
+  - DOMAIN,imap.rambler.ru,特殊使用
+  - DOMAIN-SUFFIX,imap.rambler.ru,特殊使用
+  - DOMAIN-SUFFIX,rambler.ru,特殊使用
+  - DOMAIN-SUFFIX,gtarcade.com,全球直连
   - DOMAIN-SUFFIX,gmpub.vilink.cc,首页入口
   - DOMAIN-SUFFIX,gmres.vilink.cc,首页入口
   - DOMAIN-SUFFIX,xuezhangvps.shop,首页入口
+  - DOMAIN-SUFFIX,e.beupisp.com,YouTube
   - RULE-SET,Gemini,OpenAi
   - RULE-SET,OpenAi,OpenAi
   - RULE-SET,Google,Google
@@ -550,7 +573,7 @@ rules:
   - RULE-SET,GitHub,GitHub
   - RULE-SET,Facebook,Facebook
   - RULE-SET,Instagram,Instagram
-  - RULE-SET,SteamCN, 全球直连
+  - RULE-SET,SteamCN, 漏网之鱼
   - RULE-SET,Telegram,Telegram
   - RULE-SET,ChinaMedia,国内媒体
   - RULE-SET,ChinaDomain,全球直连
@@ -616,14 +639,3 @@ rules:
 # - DOMAIN-KEYWORD,facebook, 首页入口
 # - IP-CIDR,8.8.8.8/32, DIRECT
 # 规则顺序重要，越靠前优先级越高。
-
-
-
-
-
-
-
-
-
-
-
