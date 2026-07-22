@@ -546,6 +546,8 @@ rule-providers:
 # - RULE-SET,Google, Google
 # 表示请求匹配 Google 规则集的流量走 Google 策略组
 rules: 
+  - DOMAIN-SUFFIX,zxdyng.top,全球直连
+  - DOMAIN-SUFFIX,cm.zxdyng.top,全球直连
   - DOMAIN-SUFFIX,shiyuegame.com,全球直连
   - DOMAIN-SUFFIX,oss-cn-beijing.aliyuncs.com,全球直连
   - DOMAIN,oss-cn-beijing.aliyuncs.com,全球直连
