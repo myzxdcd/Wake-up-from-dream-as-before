@@ -1,3 +1,72 @@
+# ======================= 基础运行配置（Windows / Mihomo） =======================
+# HTTP 与 SOCKS5 共用端口；仅允许本机访问，避免意外暴露代理服务。
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+ipv6: false
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+# TUN 接管系统流量。Windows 下请以管理员身份启动支持 Mihomo 的客户端。
+tun:
+  enable: true
+  stack: mixed
+  device: Mihomo
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+# fake-ip 配合 TUN 避免系统 DNS 泄漏；境内解析优先使用国内 DoH，其他结果可回退。
+dns:
+  enable: true
+  listen: 127.0.0.1:1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '+.local'
+    - 'localhost.ptlogin2.qq.com'
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  proxy-server-nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  fallback:
+    - https://dns.google/dns-query
+    - https://cloudflare-dns.com/dns-query
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+
+# 提高 TUN 场景下 TLS、HTTP 与 QUIC 流量的域名分流命中率。
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: false
+  sniff:
+    HTTP:
+      ports:
+        - 80
+        - 8080-8880
+      override-destination: true
+    TLS:
+      ports:
+        - 443
+        - 8443
+    QUIC:
+      ports:
+        - 443
+        - 8443
+
 # ======================= 节点提供器配置（proxy-providers） =======================
 # proxy-providers 是 Clash/Mihomo 的一项功能，用于从远程订阅源或本地 YAML 文件动态加载大量代理节点。
 # 与传统直接在配置文件写入所有节点相比，proxy-providers 更加灵活、易维护。
@@ -16,19 +85,30 @@
 proxy-providers:
   # 订阅1：可填写机场订阅链接（建议命名规范统一）
   Subscription-1:         # 订阅名称，可自定义
-    type: file
+    type: http
     url: "填写你的机场订阅链接"       #""中填写订阅机场链接
     interval: 86400
-    path: ./providers/Subscription-2.yaml
+    path: ./providers/Subscription-1.yaml
     health-check:
       enable: true
       url: http://www.gstatic.com/generate_204
       interval: 300
 proxy-groups:
+  - name: 自动选择
+    type: url-test
+    include-all: true
+    filter: ".*"
+    exclude-filter: "(?i)异常|剩余|流量|距离|官网|刷新|套餐"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png
+
   - name: 首页入口
     type: select
     # 总控制入口，用于所有流量的统一出站入口
     proxies:
+      - 自动选择
       - 香港节点
       - 台湾节点
       - 新加坡节点
@@ -41,6 +121,8 @@ proxy-groups:
 
   - name: 特殊使用
     type: select
+    proxies:
+      - 首页入口
     include-all: true
     filter: "(?i)台北|云悠|QKJ|AP-JP|Yoo|vmrack"
     icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Game.png
@@ -157,6 +239,70 @@ proxy-groups:
       - DIRECT
     icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Instagram.png
 
+  - name: 流媒体
+    type: select
+    proxies:
+      - 首页入口
+      - 美国节点
+      - 日本节点
+      - 新加坡节点
+      - 香港节点
+      - 台湾节点
+      - 韩国节点
+      - 备用节点
+      - DIRECT
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Streaming.png
+
+  - name: Microsoft
+    type: select
+    proxies:
+      - DIRECT
+      - 首页入口
+      - 美国节点
+      - 日本节点
+      - 新加坡节点
+      - 香港节点
+      - 台湾节点
+      - 韩国节点
+      - 备用节点
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Microsoft.png
+
+  - name: Twitter
+    type: select
+    proxies:
+      - 首页入口
+      - 美国节点
+      - 日本节点
+      - 新加坡节点
+      - 香港节点
+      - 台湾节点
+      - 韩国节点
+      - 备用节点
+      - DIRECT
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Twitter.png
+
+  - name: 广告拦截
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/AdBlack.png
+
+  - name: 游戏平台
+    type: select
+    proxies:
+      - 全球直连
+      - 首页入口
+      - 香港节点
+      - 台湾节点
+      - 新加坡节点
+      - 日本节点
+      - 美国节点
+      - 韩国节点
+      - 备用节点
+      - DIRECT
+    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Game.png
+
   - name: AppStore
     type: select
     proxies:
@@ -181,7 +327,6 @@ proxy-groups:
       - 美国节点
       - 新加坡节点
       - 韩国节点
-      - 日本节点
       - 备用节点
     icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/DomesticMedia.png
     
@@ -196,7 +341,6 @@ proxy-groups:
       - 美国节点
       - 新加坡节点
       - 韩国节点
-      - 日本节点
       - 备用节点
     icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/China.png
 
@@ -214,96 +358,80 @@ proxy-groups:
       - DIRECT
     icon: https://img.icons8.com/?size=144&id=9Mz1BhM4ui54&format=png&color=000000
 
-  # 以下为按节点名称自动分类的节点组，方便管理大量节点。
+  # 以下为按节点名称自动分类并测速选择的节点组。
 
   - name: 香港节点
-    type: select
+    type: url-test
     include-all: true
     filter: "(?i)港|HK|hk|Hong Kong|HongKong|hongkong"
     icon: https://raw.githubusercontent.com/Orz-3/mini/master/Color/HK.png
-    strategy: latency
-    health-check:
-    enable: true
     url: https://www.gstatic.com/generate_204
     interval: 300
-    retries: 3
+    tolerance: 50
 
   - name: 台湾节点
-    type: select
+    type: url-test
     include-all: true
     filter: "(?i)台|新北|彰化|TW|Taiwan"
     icon: https://raw.githubusercontent.com/Orz-3/mini/master/Color/TW.png
-    strategy: latency
-    health-check:
-    enable: true
     url: https://www.gstatic.com/generate_204
     interval: 300
-    retries: 3
+    tolerance: 50
 
   - name: 日本节点
-    type: select
+    type: url-test
     include-all: true
     filter: "(?i)日本|川日|东京|大阪|泉日|埼玉|沪日|深日|JP|Japan"
     icon: https://raw.githubusercontent.com/Orz-3/mini/master/Color/JP.png
-    strategy: latency
-    health-check:
-    enable: true
     url: https://www.gstatic.com/generate_204
     interval: 300
-    retries: 3
+    tolerance: 50
 
   - name: 美国节点
-    type: select
+    type: url-test
     include-all: true
     filter: "(?i)美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States"
     icon: https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png
-    strategy: latency
-    health-check:
-    enable: true
     url: https://www.gstatic.com/generate_204
     interval: 300
-    retries: 3
+    tolerance: 50
 
   - name: 新加坡节点
-    type: select
+    type: url-test
     include-all: true
     filter: "(?i)新加坡|坡|狮城|SG|Singapore"
     icon: https://raw.githubusercontent.com/Orz-3/mini/master/Color/SG.png
-    strategy: latency
-    health-check:
-    enable: true
     url: https://www.gstatic.com/generate_204
     interval: 300
-    retries: 3
+    tolerance: 50
 
   - name: 韩国节点
-    type: select
+    type: url-test
     include-all: true
     filter: "(?i)KR|Korea|KOR|首尔|韩|韓"
     icon: https://raw.githubusercontent.com/Orz-3/mini/master/Color/KR.png
-    strategy: latency
-    health-check:
-    enable: true
     url: https://www.gstatic.com/generate_204
     interval: 300
-    retries: 3
+    tolerance: 50
 
   - name: 备用节点
-    type: select
+    type: url-test
     include-all: true
-    filter: "(?i)^(?!.*(港|HK|Hong Kong|HongKong|hongkong|台|新北|彰化|TW|Taiwan|日本|川日|东京|大阪|泉日|埼玉|沪日|深日|JP|Japan|美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States|新加坡|坡|狮城|SG|Singapore|KR|Korea|KOR|首尔|韩|韓|NF|奈飞|解锁|Netflix|NETFLIX|Media|流媒体|异常|剩余|流量|距离|官网|刷新|cn|com|套餐)).*$"
+    filter: ".*"
+    exclude-filter: "(?i)港|HK|Hong Kong|HongKong|hongkong|台|新北|彰化|TW|Taiwan|日本|川日|东京|大阪|泉日|埼玉|沪日|深日|JP|Japan|美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States|新加坡|坡|狮城|SG|Singapore|KR|Korea|KOR|首尔|韩|韓|NF|奈飞|解锁|Netflix|NETFLIX|Media|流媒体|异常|剩余|流量|距离|官网|刷新|套餐"
     icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Server.png
-    strategy: latency
-    health-check:
-    enable: true
     url: https://www.gstatic.com/generate_204
     interval: 300
-    retries: 3
+    tolerance: 50
 
   - name: GLOBAL
+    proxies:
+      - 首页入口
+      - DIRECT
     include-all: true
     type: select
-    filter: "(?i)^(?!.*(异常|剩余|流量|距离|官网|刷新|cn|com|套餐)).*$"
+    filter: ".*"
+    exclude-filter: "(?i)异常|剩余|流量|距离|官网|刷新|套餐"
     icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png
 
 # ======================= 规则提供器配置（rule-providers） =======================
@@ -318,6 +446,7 @@ proxy-groups:
 # 表示匹配 LocalAreaNetwork 规则集的流量使用 DIRECT 策略
 
 rule-providers:
+  # 规则源跟随上游分支，并按 interval 自动更新。
   LocalAreaNetwork:
     type: http                              # 规则类型，http 表示远程获取
     url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/LocalAreaNetwork.list
@@ -384,7 +513,7 @@ rule-providers:
 
   Steam:
     url: https://raw.githubusercontent.com/myzxdcd/ios_rule_script/refs/heads/master/rule/Clash/Steam/Steam.list
-    path: ./ruleset/SteamCN.list
+    path: ./ruleset/Steam.list
     behavior: classical
     interval: 86400
     format: text
@@ -546,43 +675,43 @@ rule-providers:
 # - RULE-SET,Google, Google
 # 表示请求匹配 Google 规则集的流量走 Google 策略组
 rules: 
-  - DOMAIN-SUFFIX,zxdyng.top,全球直连
-  - DOMAIN-SUFFIX,cm.zxdyng.top,全球直连
+  - RULE-SET,LocalAreaNetwork,DIRECT
+  - RULE-SET,UnBan,DIRECT
+  - RULE-SET,BanAD,广告拦截
+  - RULE-SET,BanProgramAD,广告拦截
   - DOMAIN-SUFFIX,shiyuegame.com,全球直连
-  - DOMAIN-SUFFIX,oss-cn-beijing.aliyuncs.com,全球直连
-  - DOMAIN,oss-cn-beijing.aliyuncs.com,全球直连
-  - DOMAIN-SUFFIX,oss-cn-beijing.aliyuncs.com,全球直连
   - DOMAIN-SUFFIX,aliyuncs.com,全球直连
-  - DOMAIN,newapi.rainymoe.net,首页入口
-  - DOMAIN-SUFFIX,newapi.rainymoe.net,首页入口
   - DOMAIN-SUFFIX,rainymoe.net,首页入口
-  - DOMAIN,imap.rambler.ru,特殊使用
-  - DOMAIN-SUFFIX,imap.rambler.ru,特殊使用
   - DOMAIN-SUFFIX,rambler.ru,特殊使用
   - DOMAIN-SUFFIX,gtarcade.com,全球直连
   - DOMAIN-SUFFIX,gmpub.vilink.cc,首页入口
   - DOMAIN-SUFFIX,gmres.vilink.cc,首页入口
-  - DOMAIN-SUFFIX,xuezhangvps.shop,首页入口
   - DOMAIN-SUFFIX,e.beupisp.com,YouTube
   - RULE-SET,Gemini,OpenAi
   - RULE-SET,OpenAi,OpenAi
   - RULE-SET,Google,Google
   - RULE-SET,HT,特殊使用
-  - RULE-SET,Steam,全球直连
+  - RULE-SET,SteamCN,游戏平台
+  - RULE-SET,Steam,游戏平台
   - RULE-SET,YouTube,YouTube
   - RULE-SET,TikTok,TikTok
+  - RULE-SET,Disney,流媒体
+  - RULE-SET,Netflix,流媒体
+  - RULE-SET,Spotify,流媒体
+  - RULE-SET,ProxyMedia,流媒体
   - RULE-SET,Apple,AppStore
+  - RULE-SET,OneDrive,Microsoft
   - RULE-SET,GitHub,GitHub
+  - RULE-SET,Twitter,Twitter
   - RULE-SET,Facebook,Facebook
   - RULE-SET,Instagram,Instagram
-  - RULE-SET,SteamCN, 漏网之鱼
   - RULE-SET,Telegram,Telegram
   - RULE-SET,ChinaMedia,国内媒体
-  - RULE-SET,ChinaDomain,全球直连
-  - RULE-SET,ChinaCompanyIp,全球直连
+  - RULE-SET,ChinaDomain,DIRECT
+  - RULE-SET,ChinaCompanyIp,DIRECT
   - RULE-SET,Download,全球直连
-  - GEOIP,CN, 全球直连,no-resolve  # 中国大陆IP直连
-  - MATCH, 漏网之鱼        # 兜底规则，未匹配流量走“漏网之鱼”组
+  - GEOIP,CN,DIRECT,no-resolve  # 中国大陆IP直连
+  - MATCH,漏网之鱼        # 兜底规则，未匹配流量走“漏网之鱼”组
   
 #------------------- 规则说明 -------------------
 # 1. DOMAIN-KEYWORD
